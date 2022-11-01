@@ -30,3 +30,4 @@ C:\Users\mstev\source\repos\EZ-Jeepney-Fingerprint\EZ-Jeepney-Fingerprint\bin\Re
 C:\Users\mstev\source\repos\EZ-Jeepney-Fingerprint\EZ-Jeepney-Fingerprint\bin\Release\net5.0-windows\K4os.Compression.LZ4.dll
 C:\Users\mstev\source\repos\EZ-Jeepney-Fingerprint\EZ-Jeepney-Fingerprint\bin\Release\net5.0-windows\K4os.Hash.xxHash.dll
 C:\Users\mstev\source\repos\EZ-Jeepney-Fingerprint\EZ-Jeepney-Fingerprint\bin\Release\net5.0-windows\MySql.Data.xml
+C:\Users\mstev\source\repos\EZ-Jeepney-Fingerprint\EZ-Jeepney-Fingerprint\obj\Release\net5.0-windows\EZ_Jeepney_Fingerprint.Properties.Resources.resources

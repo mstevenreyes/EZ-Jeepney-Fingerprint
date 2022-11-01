@@ -100,7 +100,7 @@ namespace Demo
             bnClose.Enabled = false;
             bnEnroll.Enabled = false;
             bnVerify.Enabled = false;
-            bnIdentify.Enabled = false;
+            bnTimeIn.Enabled = false;
         }
 
         private void bnOpen_Click(object sender, EventArgs e)
@@ -124,7 +124,7 @@ namespace Demo
             bnClose.Enabled = true;
             bnEnroll.Enabled = true;
             bnVerify.Enabled = true;
-            bnIdentify.Enabled = true;
+            bnTimeIn.Enabled = true;
             RegisterCount = 0;
             cbRegTmp = 0;
             iFid = 1;
@@ -286,6 +286,7 @@ namespace Demo
                                 //Similarity Score (SourceAFIS)
                                 double similarity = 0.00;
                                 String candidate_id = "";
+                                String candidate_name = "";
                                 try
                                 {
                                     conn = new MySqlConnection();
@@ -307,6 +308,7 @@ namespace Demo
                                         if (similarity >= 40.00)
                                         {
                                             candidate_id = myReader2.GetString("emp_id");
+                                            candidate_name = myReader2.GetString("emp_firstname") + " " + myReader2.GetString("emp_surname"); 
                                             break;
                                         }
                                     }
@@ -316,17 +318,26 @@ namespace Demo
                                     MessageBox.Show(ex.Message);
                                 }
 
-
-                                if (zkfp.ZKFP_ERR_OK == ret)
+                                if(similarity >= 40.000)
                                 {
-                                    textRes.Text = "Identify succ, fid= " + fid + ", score=" + score + "! Similarity Score SourceAFIS: " + similarity + "emp id: " + candidate_id  ;
-                                    return;
+                                    MessageBox.Show("Successful! Time-in Details: " + Environment.NewLine + "Employee: " + candidate_name
+                                        + " (" + candidate_id + ")");
                                 }
                                 else
                                 {
-                                    textRes.Text = "Identify fail, ret= " + ret;
-                                    return;
+                                    MessageBox.Show("Fingerprint Not Registered.");
                                 }
+
+                                //if (zkfp.ZKFP_ERR_OK == ret)
+                                //{
+                                //    textRes.Text = "Identify succ, fid= " + fid + ", score=" + score + "! Similarity Score SourceAFIS: " + similarity + "emp id: " + candidate_id  ;
+                                //    return;
+                                //}
+                                //else
+                                //{
+                                //    textRes.Text = "Identify fail, ret= " + ret;
+                                //    return;
+                                //}
                             }
                             else
                             {
@@ -384,7 +395,7 @@ namespace Demo
             bnClose.Enabled = false;
             bnEnroll.Enabled = false;
             bnVerify.Enabled = false;
-            bnIdentify.Enabled = false;
+            bnTimeIn.Enabled = false;
         }
 
         private void bnEnroll_Click(object sender, EventArgs e)

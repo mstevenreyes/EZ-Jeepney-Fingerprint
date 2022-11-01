@@ -33,7 +33,7 @@
             this.bnEnroll = new System.Windows.Forms.Button();
             this.bnFree = new System.Windows.Forms.Button();
             this.bnClose = new System.Windows.Forms.Button();
-            this.bnIdentify = new System.Windows.Forms.Button();
+            this.bnTimeIn = new System.Windows.Forms.Button();
             this.textRes = new System.Windows.Forms.TextBox();
             this.picFPImg = new System.Windows.Forms.PictureBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -41,6 +41,7 @@
             this.textBox_emp_id = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.bnVerify = new System.Windows.Forms.Button();
+            this.bnTimeOut = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.picFPImg)).BeginInit();
             this.SuspendLayout();
             // 
@@ -70,7 +71,7 @@
             // bnEnroll
             // 
             this.bnEnroll.Enabled = false;
-            this.bnEnroll.Location = new System.Drawing.Point(441, 306);
+            this.bnEnroll.Location = new System.Drawing.Point(258, 89);
             this.bnEnroll.Margin = new System.Windows.Forms.Padding(4);
             this.bnEnroll.Name = "bnEnroll";
             this.bnEnroll.Size = new System.Drawing.Size(88, 29);
@@ -103,17 +104,17 @@
             this.bnClose.UseVisualStyleBackColor = true;
             this.bnClose.Click += new System.EventHandler(this.bnClose_Click);
             // 
-            // bnIdentify
+            // bnTimeIn
             // 
-            this.bnIdentify.Enabled = false;
-            this.bnIdentify.Location = new System.Drawing.Point(441, 259);
-            this.bnIdentify.Margin = new System.Windows.Forms.Padding(4);
-            this.bnIdentify.Name = "bnIdentify";
-            this.bnIdentify.Size = new System.Drawing.Size(88, 29);
-            this.bnIdentify.TabIndex = 6;
-            this.bnIdentify.Text = "Identify";
-            this.bnIdentify.UseVisualStyleBackColor = true;
-            this.bnIdentify.Click += new System.EventHandler(this.bnIdentify_Click);
+            this.bnTimeIn.Enabled = false;
+            this.bnTimeIn.Location = new System.Drawing.Point(372, 279);
+            this.bnTimeIn.Margin = new System.Windows.Forms.Padding(4);
+            this.bnTimeIn.Name = "bnTimeIn";
+            this.bnTimeIn.Size = new System.Drawing.Size(88, 29);
+            this.bnTimeIn.TabIndex = 6;
+            this.bnTimeIn.Text = "Time-in";
+            this.bnTimeIn.UseVisualStyleBackColor = true;
+            this.bnTimeIn.Click += new System.EventHandler(this.bnIdentify_Click);
             // 
             // textRes
             // 
@@ -128,13 +129,14 @@
             // picFPImg
             // 
             this.picFPImg.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.picFPImg.Location = new System.Drawing.Point(409, 13);
+            this.picFPImg.Location = new System.Drawing.Point(796, 32);
             this.picFPImg.Margin = new System.Windows.Forms.Padding(4);
             this.picFPImg.Name = "picFPImg";
             this.picFPImg.Size = new System.Drawing.Size(153, 201);
             this.picFPImg.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.picFPImg.TabIndex = 8;
             this.picFPImg.TabStop = false;
+            this.picFPImg.Visible = false;
             // 
             // label1
             // 
@@ -175,7 +177,7 @@
             // bnVerify
             // 
             this.bnVerify.Enabled = false;
-            this.bnVerify.Location = new System.Drawing.Point(636, 259);
+            this.bnVerify.Location = new System.Drawing.Point(700, 99);
             this.bnVerify.Margin = new System.Windows.Forms.Padding(4);
             this.bnVerify.Name = "bnVerify";
             this.bnVerify.Size = new System.Drawing.Size(88, 29);
@@ -185,18 +187,31 @@
             this.bnVerify.Visible = false;
             this.bnVerify.Click += new System.EventHandler(this.bnVerify_Click);
             // 
+            // bnTimeOut
+            // 
+            this.bnTimeOut.Enabled = false;
+            this.bnTimeOut.Location = new System.Drawing.Point(510, 279);
+            this.bnTimeOut.Margin = new System.Windows.Forms.Padding(4);
+            this.bnTimeOut.Name = "bnTimeOut";
+            this.bnTimeOut.Size = new System.Drawing.Size(88, 29);
+            this.bnTimeOut.TabIndex = 13;
+            this.bnTimeOut.Text = "Time-out";
+            this.bnTimeOut.UseVisualStyleBackColor = true;
+            // 
             // Dashboard
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.SlateGray;
             this.ClientSize = new System.Drawing.Size(975, 498);
+            this.Controls.Add(this.bnTimeOut);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.textBox_emp_id);
             this.Controls.Add(this.cmbIdx);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.picFPImg);
             this.Controls.Add(this.textRes);
-            this.Controls.Add(this.bnIdentify);
+            this.Controls.Add(this.bnTimeIn);
             this.Controls.Add(this.bnClose);
             this.Controls.Add(this.bnFree);
             this.Controls.Add(this.bnVerify);
@@ -220,7 +235,7 @@
         private System.Windows.Forms.Button bnEnroll;
         private System.Windows.Forms.Button bnFree;
         private System.Windows.Forms.Button bnClose;
-        private System.Windows.Forms.Button bnIdentify;
+        private System.Windows.Forms.Button bnTimeIn;
         private System.Windows.Forms.TextBox textRes;
         private System.Windows.Forms.PictureBox picFPImg;
         private System.Windows.Forms.Label label1;
@@ -228,6 +243,7 @@
         private System.Windows.Forms.TextBox textBox_emp_id;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button bnVerify;
+        private System.Windows.Forms.Button bnTimeOut;
     }
 }
 

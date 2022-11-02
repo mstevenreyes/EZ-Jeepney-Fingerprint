@@ -26,7 +26,8 @@ namespace Demo
         IntPtr FormHandle = IntPtr.Zero;
         bool bIsTimeToDie = false;
         bool IsRegister = false;
-        bool bIdentify = true;
+        bool bTimeIn = false;
+        bool bTimeOut = false;
         byte[] FPBuffer;
         int RegisterCount = 0;
         const int REGISTER_FINGER_COUNT = 2;
@@ -39,14 +40,15 @@ namespace Demo
         int iFid = 1;
         Thread captureThread = null;
         //Mysql Connection
-        MySql.Data.MySqlClient.MySqlConnection conn;
-        string myConnectionString;
+        MySqlConnection conn;
+        string myConnectionString = "server=localhost;uid=root;" + "database=majetsco";
         //Employee ID
 
         //template fingerprinit bRegister
         FingerprintTemplate template;
         //byte array fingerprint bRegister
         byte[] serialized;
+
         private int mfpWidth = 0;
         private int mfpHeight = 0;
 
@@ -106,6 +108,7 @@ namespace Demo
         private void bnOpen_Click(object sender, EventArgs e)
         {
             int ret = zkfp.ZKFP_ERR_OK;
+
             if (IntPtr.Zero == (mDevHandle = zkfp2.OpenDevice(cmbIdx.SelectedIndex)))
             {
                 MessageBox.Show("OpenDevice fail");
@@ -125,7 +128,8 @@ namespace Demo
             bnEnroll.Enabled = true;
             bnVerify.Enabled = true;
             bnTimeIn.Enabled = true;
-            RegisterCount = 0;
+            bnTimeOut.Enabled = true;
+
             cbRegTmp = 0;
             iFid = 1;
             for (int i = 0; i < 3; i++)
@@ -165,27 +169,7 @@ namespace Demo
                 Thread.Sleep(200);
             }
         }
-        record Subject(int Id, string Name, FingerprintTemplate Template) {
-          
-        }
-        Subject Identify(FingerprintTemplate probe, IEnumerable<Subject> candidates)
-        {
-            var matcher = new FingerprintMatcher(probe);
-            Subject match = null;
-            double max = Double.NegativeInfinity;
-            foreach (var candidate in candidates)
-            {
-                double similarity = matcher.Match(candidate.Template);
-                if (similarity > max)
-                {
-                    max = similarity;
-                    match = candidate;
-                }
-            }
-            double threshold = 40;
-            return max >= threshold ? match : null;
-        }
-        
+ 
         protected override void DefWndProc(ref Message m)
         {
             switch (m.Msg)
@@ -203,15 +187,9 @@ namespace Demo
                             int ret = zkfp.ZKFP_ERR_OK;
                             int fid = 0, score = 0;
 
-                            ret = zkfp2.DBIdentify(mDBHandle, CapTmp, ref fid, ref score);
-                            if (zkfp.ZKFP_ERR_OK == ret)
-                            {
-                                textRes.Text = "This finger was already register by " + fid + "!";
-                                return;
-                            }
                             if (RegisterCount > 0 && zkfp2.DBMatch(mDBHandle, CapTmp, RegTmps[RegisterCount - 1]) <= 0)
                             {
-                                textRes.Text = "Please press the same finger 3 times for the enrollment";
+                                textRes.Text = "Scan your finger 2 times for enrollment.";
                                 return;
                             }
                             Array.Copy(CapTmp, RegTmps[RegisterCount], cbCapTmp);
@@ -237,12 +215,10 @@ namespace Demo
                                     myCommand.Parameters.Add("@fingerprint", MySqlDbType.VarBinary).Value = serialized;
                                     myCommand.ExecuteNonQuery();
                                 }
-                                //MySqlCommand myCommand = new MySqlCommand(sql, conn);
-                                //MySqlDataReader myReader = myCommand.ExecuteReader();
                                 conn.Close();
                                 MessageBox.Show("Fingerprint Enrolled.");
                             }
-                            catch (MySql.Data.MySqlClient.MySqlException ex)
+                            catch (MySqlException ex)
                             {
                                 MessageBox.Show(ex.Message);
                             }
@@ -271,16 +247,87 @@ namespace Demo
                         }
                         else
                         {
-                            //if (cbRegTmp <= 0)
-                            //{
-                            //    textRes.Text = "Please register your finger first!";
-                            //    return;
-                            //}
-                            if (bIdentify)
+                          
+                            if (bTimeIn)
                             {
                                 int ret = zkfp.ZKFP_ERR_OK;
                                 int fid = 0, score = 0;
                                 ret = zkfp2.DBIdentify(mDBHandle, CapTmp, ref fid, ref score);
+                                //Mysql Query
+                                
+                                //Similarity Score (SourceAFIS)
+                                double similarity = 0.00;
+                                String candidate_id = "";
+                                String candidate_name = "";
+                                try
+                                {
+                                    conn = new MySqlConnection();
+                                    conn.ConnectionString = myConnectionString;
+                                    conn.Open();
+
+                                    var myCommand2 = new MySqlCommand("SELECT tbf.emp_id, tbf.fingerprint_byte, tbe.emp_surname, tbe.emp_firstname, " +
+                                        "tbe.emp_type FROM tb_fingerprints AS tbf LEFT JOIN tb_employee AS tbe ON tbf.emp_id = tbe.emp_id", conn);
+                                    var myReader2 = myCommand2.ExecuteReader();
+
+                                    while (myReader2.Read())
+                                    {
+                                        var probe = new FingerprintTemplate(
+                                        new FingerprintImage(File.ReadAllBytes("probe.png")));
+                                        byte[] serialized2 = (byte[])myReader2["fingerprint_byte"];
+                                        var template2 = new FingerprintTemplate(serialized2);
+                                        var matcher = new FingerprintMatcher(probe);
+                                        similarity = matcher.Match(template2); //checks candidate fingerprint and store as similarity score
+                                        if (similarity >= 40.00)
+                                        {
+                                            candidate_id = myReader2.GetString("emp_id");
+                                            candidate_name = myReader2.GetString("emp_firstname") + " " + myReader2.GetString("emp_surname");
+                                            break;
+                                        }
+                                    }
+                                    conn.Close();
+                                }
+                                catch (MySqlException ex)
+                                {
+                                    MessageBox.Show(ex.Message);
+                                }
+
+
+                                if (similarity >= 40.000)
+                                {
+                                    bTimeIn = false;
+                                   
+                                    try
+                                    {
+                                        conn = new MySqlConnection();
+                                        conn.ConnectionString = myConnectionString;
+                                        conn.Open();
+                                        using (var timeInCommand = new MySqlCommand("INSERT INTO tb_attendance_sheet(emp_id, time_in, attendance_date) VALUES (@emp_id,  @time_in, @att_date)", conn))
+                                        {
+                                            timeInCommand.Parameters.Add("@emp_id", MySqlDbType.String).Value = candidate_id;
+                                            timeInCommand.Parameters.Add("@time_in", MySqlDbType.String).Value = DateTime.Now.ToString("HH:mm:ss");
+                                            timeInCommand.Parameters.Add("@att_date", MySqlDbType.String).Value = DateTime.Now.ToString("yyyy-MM-dd");
+                                            timeInCommand.ExecuteNonQuery();
+                                        }
+                                        MessageBox.Show("Successful! Time-in Details: " + DateTime.Now.ToString("HH:mm:ss") + Environment.NewLine + "Employee: " + candidate_name
+                                       + " (" + candidate_id + ")");
+                                        conn.Close();
+                                    }
+                                    catch (MySqlException ex)
+                                    {
+                                        MessageBox.Show(ex.Message);
+                                    }
+                                }
+                                else
+                                {
+                                    bTimeIn = false;
+                                    MessageBox.Show("Fingerprint Not Registered.");
+                                    
+                                }
+                  
+                            }
+                            if (bTimeOut)
+                            {
+                                int ret = zkfp.ZKFP_ERR_OK;
                                 //Mysql Query
                                 myConnectionString = "server=localhost;uid=root;" + "database=majetsco";
                                 //Similarity Score (SourceAFIS)
@@ -308,7 +355,7 @@ namespace Demo
                                         if (similarity >= 40.00)
                                         {
                                             candidate_id = myReader2.GetString("emp_id");
-                                            candidate_name = myReader2.GetString("emp_firstname") + " " + myReader2.GetString("emp_surname"); 
+                                            candidate_name = myReader2.GetString("emp_firstname") + " " + myReader2.GetString("emp_surname");
                                             break;
                                         }
                                     }
@@ -318,40 +365,39 @@ namespace Demo
                                     MessageBox.Show(ex.Message);
                                 }
 
-                                if(similarity >= 40.000)
+                                if (similarity >= 40.000)
                                 {
-                                    MessageBox.Show("Successful! Time-in Details: " + Environment.NewLine + "Employee: " + candidate_name
+                                    bTimeOut = false;
+                                    
+                                    try
+                                    {
+                                        conn = new MySqlConnection();
+                                        conn.ConnectionString = myConnectionString;
+                                        conn.Open();
+                                        using (var timeOutCommand = new MySqlCommand("UPDATE tb_attendance_sheet SET time_out = @time_out", conn))
+                                        {
+                     
+                                            //timeOutCommand.Parameters.Add("@emp_id", MySqlDbType.String).Value = candidate_id;
+                                            timeOutCommand.Parameters.Add("@time_out", MySqlDbType.String).Value = DateTime.Now.ToString("HH:mm:ss");
+                                            //timeOutCommand.Parameters.Add("@att_date", MySqlDbType.Date).Value = now.ToString("yy-MM-dd");
+                                            timeOutCommand.ExecuteNonQuery();
+                                        }
+                                        MessageBox.Show("Successful! Time-out Details: " + DateTime.Now.ToString("HH:mm:ss") + Environment.NewLine + "Employee: " + candidate_name
                                         + " (" + candidate_id + ")");
+                                        conn.Close();
+                                    }
+                                    catch (MySqlException ex)
+                                    {
+                                        MessageBox.Show(ex.Message);
+                                    }
                                 }
                                 else
                                 {
+                                    bTimeOut = false;
                                     MessageBox.Show("Fingerprint Not Registered.");
+
                                 }
 
-                                //if (zkfp.ZKFP_ERR_OK == ret)
-                                //{
-                                //    textRes.Text = "Identify succ, fid= " + fid + ", score=" + score + "! Similarity Score SourceAFIS: " + similarity + "emp id: " + candidate_id  ;
-                                //    return;
-                                //}
-                                //else
-                                //{
-                                //    textRes.Text = "Identify fail, ret= " + ret;
-                                //    return;
-                                //}
-                            }
-                            else
-                            {
-                                int ret = zkfp2.DBMatch(mDBHandle, CapTmp, RegTmp);
-                                if (0 < ret)
-                                {
-                                    textRes.Text = "Match finger succ, score=" + ret + "!";
-                                    return;
-                                }
-                                else
-                                {
-                                    textRes.Text = "Match finger fail, ret= " + ret;
-                                    return;
-                                }
                             }
                         }
                     }
@@ -366,9 +412,37 @@ namespace Demo
         private void Form1_Load(object sender, EventArgs e)
         {
             FormHandle = this.Handle;
+            //Mysql Query for custom source Employee ID
+            myConnectionString = "server=localhost;uid=root;" + "database=majetsco";
+            try
+            {
+                conn = new MySqlConnection();
+                conn.ConnectionString = myConnectionString;
+                conn.Open();
+
+                var myCommand3 = new MySqlCommand("SELECT emp_id FROM tb_employee", conn);
+                var myReader3 = myCommand3.ExecuteReader();
+                AutoCompleteStringCollection myCollection = new AutoCompleteStringCollection();
+
+
+                while (myReader3.Read())
+                {
+                    myCollection.Add(myReader3.GetString(0));   
+                }
+
+                textBox_emp_id.AutoCompleteCustomSource = myCollection;
+            }
+            catch (MySqlException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            timer1.Start();
         }
 
+        private void timer1_Tick(object sender, EventArgs e)
+        {
 
+        }
 
         private void CloseDevice()
         {
@@ -381,9 +455,6 @@ namespace Demo
                 mDevHandle = IntPtr.Zero;
             }
         }
-
-
-
         private void bnClose_Click(object sender, EventArgs e)
         {
             CloseDevice();
@@ -405,31 +476,55 @@ namespace Demo
                 IsRegister = true;
                 RegisterCount = 0;
                 cbRegTmp = 0;
-                textRes.Text = "Please press your finger 3 times!";
+                textRes.Text = "Please press your finger 2 times!";
             }
         }
 
         private void bnIdentify_Click(object sender, EventArgs e)
         {
-            if (!bIdentify)
+            if (!bTimeIn)
             {
-                bIdentify = true;
-                textRes.Text = "Please press your finger!";
+                bTimeIn = true;
+                bTimeOut = false;
+                textRes.Text = "Scan your finger to time-in:";
+            
+                
             }
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-
+           
         }
 
         private void bnVerify_Click(object sender, EventArgs e)
         {
-            if (bIdentify)
+            if (bTimeIn)
             {
-                bIdentify = false;
+                bTimeIn = false;
                 textRes.Text = "Please press your finger!";
             }
         }
+
+        private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void bnTimeOut_Click(object sender, EventArgs e)
+        {
+            if (!bTimeOut)
+            {
+                bTimeOut = true;
+                bTimeIn = false;
+                textRes.Text = "Scan your finger to time-out:";
+            }
+        }
+
+        private void textRes_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
     }
 }

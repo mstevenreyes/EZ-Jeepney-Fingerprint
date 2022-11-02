@@ -64,6 +64,51 @@ namespace Demo
 
         private void bnInit_Click(object sender, EventArgs e)
         {
+            //cmbIdx.Items.Clear();
+            //int ret = zkfperrdef.ZKFP_ERR_OK;
+            //if ((ret = zkfp2.Init()) == zkfperrdef.ZKFP_ERR_OK)
+            //{
+            //    int nCount = zkfp2.GetDeviceCount();
+            //    if (nCount > 0)
+            //    {
+            //        for (int i = 0; i < nCount; i++)
+            //        {
+            //            cmbIdx.Items.Add(i.ToString());
+            //        }
+            //        cmbIdx.SelectedIndex = 0;
+            //        bnInit.Enabled = false;
+            //        bnFree.Enabled = true;
+            //        bnOpen.Enabled = true;
+            //    }
+            //    else
+            //    {
+            //        zkfp2.Terminate();
+            //        MessageBox.Show("No device connected!");
+            //    }
+            //}
+            //else
+            //{
+            //    MessageBox.Show("Initialize fail, ret=" + ret + " !");
+            //}
+        }
+
+        private void bnFree_Click(object sender, EventArgs e)
+        {
+            //zkfp2.Terminate();
+            //cbRegTmp = 0;
+            //bnInit.Enabled = true;
+            //bnFree.Enabled = false;
+            //bnOpen.Enabled = false;
+            //bnClose.Enabled = false;
+            //bnEnroll.Enabled = false;
+            //bnVerify.Enabled = false;
+            //bnTimeIn.Enabled = false;
+        }
+
+        private void bnOpen_Click(object sender, EventArgs e)
+        {
+            //Init Code
+
             cmbIdx.Items.Clear();
             int ret = zkfperrdef.ZKFP_ERR_OK;
             if ((ret = zkfp2.Init()) == zkfperrdef.ZKFP_ERR_OK)
@@ -90,24 +135,8 @@ namespace Demo
             {
                 MessageBox.Show("Initialize fail, ret=" + ret + " !");
             }
-        }
-
-        private void bnFree_Click(object sender, EventArgs e)
-        {
-            zkfp2.Terminate();
-            cbRegTmp = 0;
-            bnInit.Enabled = true;
-            bnFree.Enabled = false;
-            bnOpen.Enabled = false;
-            bnClose.Enabled = false;
-            bnEnroll.Enabled = false;
-            bnVerify.Enabled = false;
-            bnTimeIn.Enabled = false;
-        }
-
-        private void bnOpen_Click(object sender, EventArgs e)
-        {
-            int ret = zkfp.ZKFP_ERR_OK;
+            //============
+            ret = zkfp.ZKFP_ERR_OK;
 
             if (IntPtr.Zero == (mDevHandle = zkfp2.OpenDevice(cmbIdx.SelectedIndex)))
             {
@@ -151,7 +180,7 @@ namespace Demo
             captureThread.IsBackground = true;
             captureThread.Start();
             bIsTimeToDie = false;
-            textRes.Text = "Open success!";
+            textRes.Text = "Fingerprint Scanner Opened.";
 
         }
 
@@ -185,11 +214,10 @@ namespace Demo
                         if (IsRegister)
                         {
                             int ret = zkfp.ZKFP_ERR_OK;
-                            int fid = 0, score = 0;
 
                             if (RegisterCount > 0 && zkfp2.DBMatch(mDBHandle, CapTmp, RegTmps[RegisterCount - 1]) <= 0)
                             {
-                                textRes.Text = "Scan your finger 2 times for enrollment.";
+                                textRes.Text = "Scan your same finger please.";
                                 return;
                             }
                             Array.Copy(CapTmp, RegTmps[RegisterCount], cbCapTmp);
@@ -216,7 +244,6 @@ namespace Demo
                                     myCommand.ExecuteNonQuery();
                                 }
                                 conn.Close();
-                                MessageBox.Show("Fingerprint Enrolled.");
                             }
                             catch (MySqlException ex)
                             {
@@ -231,7 +258,7 @@ namespace Demo
                                        zkfp.ZKFP_ERR_OK == (ret = zkfp2.DBAdd(mDBHandle, iFid, RegTmp)))
                                 {
                                     iFid++;
-                                    textRes.Text = "enroll success! " ;
+                                    textRes.Text = "Fingerprint Succesfully enrolled. " ;
                                 }
                                 else
                                 {
@@ -242,7 +269,7 @@ namespace Demo
                             }
                             else
                             {
-                                textRes.Text = "You need to press the " + (REGISTER_FINGER_COUNT - RegisterCount) + " times fingerprint " + serialized;
+                                textRes.Text = "Scan your finger " + (REGISTER_FINGER_COUNT - RegisterCount) + " more time.";
                             }
                         }
                         else
@@ -436,12 +463,16 @@ namespace Demo
             {
                 MessageBox.Show(ex.Message);
             }
+            //Timer-Date Ticker
             timer1.Start();
+            //Enable Open
+            bnOpen.Enabled = true;
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-
+            time.Text = DateTime.Now.ToLongTimeString();
+            date.Text = DateTime.Now.ToLongDateString();
         }
 
         private void CloseDevice()
@@ -467,6 +498,24 @@ namespace Demo
             bnEnroll.Enabled = false;
             bnVerify.Enabled = false;
             bnTimeIn.Enabled = false;
+            bnTimeOut.Enabled = false;
+
+            //Finalize Event
+            zkfp2.Terminate();
+            cbRegTmp = 0;
+            bnInit.Enabled = true;
+            bnFree.Enabled = false;
+            bnOpen.Enabled = true;
+            bnClose.Enabled = false;
+            bnEnroll.Enabled = false;
+            bnVerify.Enabled = false;
+            bnTimeIn.Enabled = false;
+            textRes.Text = "Fingerprint Device Terminated.";
+            //=
+            textBox_emp_id.Visible = false;
+            empIdLabel.Visible = false;
+            IsRegister = false;
+
         }
 
         private void bnEnroll_Click(object sender, EventArgs e)
@@ -476,19 +525,22 @@ namespace Demo
                 IsRegister = true;
                 RegisterCount = 0;
                 cbRegTmp = 0;
-                textRes.Text = "Please press your finger 2 times!";
+                textBox_emp_id.Visible = true;
+                empIdLabel.Visible = true;
+                textRes.Text = "Please place your finger on the scanner";
             }
         }
 
         private void bnIdentify_Click(object sender, EventArgs e)
         {
+            textBox_emp_id.Visible = false;
+            empIdLabel.Visible = false;
+            IsRegister = false;
             if (!bTimeIn)
             {
                 bTimeIn = true;
                 bTimeOut = false;
                 textRes.Text = "Scan your finger to time-in:";
-            
-                
             }
         }
 
@@ -513,6 +565,9 @@ namespace Demo
 
         private void bnTimeOut_Click(object sender, EventArgs e)
         {
+            textBox_emp_id.Visible = false;
+            empIdLabel.Visible = false;
+            IsRegister = false;
             if (!bTimeOut)
             {
                 bTimeOut = true;
@@ -526,5 +581,9 @@ namespace Demo
 
         }
 
+        private void Time_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

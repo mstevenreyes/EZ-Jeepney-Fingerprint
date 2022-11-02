@@ -41,14 +41,15 @@
             this.label1 = new System.Windows.Forms.Label();
             this.cmbIdx = new System.Windows.Forms.ComboBox();
             this.textBox_emp_id = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
+            this.empIdLabel = new System.Windows.Forms.Label();
             this.bnVerify = new System.Windows.Forms.Button();
             this.bnTimeOut = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
             this.logo = new System.Windows.Forms.Label();
-            this.Time = new System.Windows.Forms.Label();
+            this.time = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.date = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.picFPImg)).BeginInit();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -68,6 +69,7 @@
             this.bnInit.TabIndex = 0;
             this.bnInit.Text = "Initialize";
             this.bnInit.UseVisualStyleBackColor = true;
+            this.bnInit.Visible = false;
             this.bnInit.Click += new System.EventHandler(this.bnInit_Click);
             // 
             // bnOpen
@@ -120,6 +122,7 @@
             this.bnFree.TabIndex = 4;
             this.bnFree.Text = "Finalize";
             this.bnFree.UseVisualStyleBackColor = true;
+            this.bnFree.Visible = false;
             this.bnFree.Click += new System.EventHandler(this.bnFree_Click);
             // 
             // bnClose
@@ -173,9 +176,9 @@
             // 
             // picFPImg
             // 
-            this.picFPImg.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(1)))), ((int)(((byte)(29)))), ((int)(((byte)(46)))));
+            this.picFPImg.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(2)))), ((int)(((byte)(56)))), ((int)(((byte)(89)))));
             this.picFPImg.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.picFPImg.Location = new System.Drawing.Point(712, 24);
+            this.picFPImg.Location = new System.Drawing.Point(693, 13);
             this.picFPImg.Margin = new System.Windows.Forms.Padding(4);
             this.picFPImg.Name = "picFPImg";
             this.picFPImg.Size = new System.Drawing.Size(250, 346);
@@ -186,7 +189,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(608, 165);
+            this.label1.Location = new System.Drawing.Point(831, 371);
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(39, 15);
@@ -197,7 +200,7 @@
             // cmbIdx
             // 
             this.cmbIdx.FormattingEnabled = true;
-            this.cmbIdx.Location = new System.Drawing.Point(608, 138);
+            this.cmbIdx.Location = new System.Drawing.Point(878, 368);
             this.cmbIdx.Margin = new System.Windows.Forms.Padding(4);
             this.cmbIdx.Name = "cmbIdx";
             this.cmbIdx.Size = new System.Drawing.Size(46, 23);
@@ -210,24 +213,26 @@
             this.textBox_emp_id.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
             this.textBox_emp_id.BackColor = System.Drawing.Color.White;
             this.textBox_emp_id.ForeColor = System.Drawing.SystemColors.InfoText;
-            this.textBox_emp_id.Location = new System.Drawing.Point(368, 263);
+            this.textBox_emp_id.Location = new System.Drawing.Point(368, 225);
             this.textBox_emp_id.Name = "textBox_emp_id";
             this.textBox_emp_id.Size = new System.Drawing.Size(133, 23);
             this.textBox_emp_id.TabIndex = 11;
+            this.textBox_emp_id.Visible = false;
             this.textBox_emp_id.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
-            // label2
+            // empIdLabel
             // 
-            this.label2.AutoSize = true;
-            this.label2.BackColor = System.Drawing.Color.Transparent;
-            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label2.ForeColor = System.Drawing.Color.White;
-            this.label2.Location = new System.Drawing.Point(368, 235);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(133, 25);
-            this.label2.TabIndex = 12;
-            this.label2.Text = "Employee ID";
-            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.empIdLabel.AutoSize = true;
+            this.empIdLabel.BackColor = System.Drawing.Color.Transparent;
+            this.empIdLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.empIdLabel.ForeColor = System.Drawing.Color.White;
+            this.empIdLabel.Location = new System.Drawing.Point(368, 186);
+            this.empIdLabel.Name = "empIdLabel";
+            this.empIdLabel.Size = new System.Drawing.Size(133, 25);
+            this.empIdLabel.TabIndex = 12;
+            this.empIdLabel.Text = "Employee ID";
+            this.empIdLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.empIdLabel.Visible = false;
             // 
             // bnVerify
             // 
@@ -300,21 +305,39 @@
             this.logo.TabIndex = 0;
             this.logo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // Time
+            // time
             // 
-            this.Time.AutoSize = true;
-            this.Time.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Time.ForeColor = System.Drawing.SystemColors.Control;
-            this.Time.Location = new System.Drawing.Point(420, 112);
-            this.Time.Name = "Time";
-            this.Time.Size = new System.Drawing.Size(81, 33);
-            this.Time.TabIndex = 15;
-            this.Time.Text = "Time";
+            this.time.AutoSize = true;
+            this.time.BackColor = System.Drawing.Color.Transparent;
+            this.time.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.time.ForeColor = System.Drawing.SystemColors.Control;
+            this.time.Location = new System.Drawing.Point(273, 69);
+            this.time.Name = "time";
+            this.time.Size = new System.Drawing.Size(59, 25);
+            this.time.TabIndex = 15;
+            this.time.Text = "Time";
+            this.time.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.time.Click += new System.EventHandler(this.Time_Click);
             // 
             // timer1
             // 
             this.timer1.Enabled = true;
-            this.timer1.Interval = 1000;            
+            this.timer1.Interval = 1000;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
+            // date
+            // 
+            this.date.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.date.AutoSize = true;
+            this.date.BackColor = System.Drawing.Color.Transparent;
+            this.date.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.date.ForeColor = System.Drawing.SystemColors.Control;
+            this.date.Location = new System.Drawing.Point(273, 107);
+            this.date.Name = "date";
+            this.date.Size = new System.Drawing.Size(57, 25);
+            this.date.TabIndex = 16;
+            this.date.Text = "Date";
+            this.date.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // Dashboard
             // 
@@ -322,9 +345,10 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(1)))), ((int)(((byte)(29)))), ((int)(((byte)(46)))));
             this.ClientSize = new System.Drawing.Size(975, 498);
-            this.Controls.Add(this.Time);
+            this.Controls.Add(this.date);
+            this.Controls.Add(this.time);
             this.Controls.Add(this.panel1);
-            this.Controls.Add(this.label2);
+            this.Controls.Add(this.empIdLabel);
             this.Controls.Add(this.textBox_emp_id);
             this.Controls.Add(this.cmbIdx);
             this.Controls.Add(this.label1);
@@ -364,8 +388,10 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Label logo;
-        private System.Windows.Forms.Label Time;
+        private System.Windows.Forms.Label time;
         private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Label date;
+        private System.Windows.Forms.Label empIdLabel;
     }
 }
 

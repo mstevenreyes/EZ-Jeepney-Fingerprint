@@ -228,6 +228,29 @@ namespace Demo
                             var image = new FingerprintImage(File.ReadAllBytes("probe-" + RegisterCount.ToString() + ".png"));                   
                             template = new FingerprintTemplate(image);
                             serialized = template.ToByteArray();
+                            //Checks if finger already registered
+                            double registeredCheck = 0.00;
+                            conn = new MySqlConnection();
+                            conn.ConnectionString = myConnectionString;
+                            conn.Open();
+                            var checkRegistered = new MySqlCommand("SELECT fingerprint_byte FROM tb_fingerprints", conn);
+                            var checkRegisterRead = checkRegistered.ExecuteReader();
+                            while(checkRegisterRead.Read())
+                            {
+                                var probe = new FingerprintTemplate(
+                                            new FingerprintImage(File.ReadAllBytes("probe.png")));
+                                byte[] fingerByteArr = (byte[])checkRegisterRead["fingerprint_byte"];
+                                var fingerTemplate = new FingerprintTemplate(fingerByteArr);
+                                var registerMatch = new FingerprintMatcher(probe);
+                                registeredCheck = registerMatch.Match(fingerTemplate); //checks candidate fingerprint and store as similarity score
+                                if (registeredCheck >= 40.00)
+                                {
+                                    MessageBox.Show("Finger already registered in the database.");
+                                    return;
+                                }
+                            }
+                            conn.Close();
+                           
                             //Mysql Connection and Insert
                             myConnectionString = "server=localhost;uid=root;" + "database=majetsco";
                             try
@@ -560,6 +583,7 @@ namespace Demo
             textBox_emp_id.Visible = false;
             empIdLabel.Visible = false;
             IsRegister = false;
+            textRes.Text = "Scan your finger to time-in:";
             if (!bTimeIn)
             {
                 bTimeIn = true;

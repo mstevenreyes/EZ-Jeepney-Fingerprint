@@ -178,10 +178,10 @@
             // 
             this.picFPImg.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(2)))), ((int)(((byte)(56)))), ((int)(((byte)(89)))));
             this.picFPImg.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.picFPImg.Location = new System.Drawing.Point(693, 13);
+            this.picFPImg.Location = new System.Drawing.Point(693, 23);
             this.picFPImg.Margin = new System.Windows.Forms.Padding(4);
             this.picFPImg.Name = "picFPImg";
-            this.picFPImg.Size = new System.Drawing.Size(250, 346);
+            this.picFPImg.Size = new System.Drawing.Size(250, 336);
             this.picFPImg.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.picFPImg.TabIndex = 8;
             this.picFPImg.TabStop = false;

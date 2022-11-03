@@ -41,7 +41,7 @@ namespace Demo
         Thread captureThread = null;
         //Mysql Connection
         MySqlConnection conn;
-        string myConnectionString = "server=localhost;uid=root;" + "database=majetsco";
+        String myConnectionString = "server=localhost;uid=root;" + "database=majetsco";
         //Employee ID
 
         //template fingerprinit bRegister
@@ -214,14 +214,12 @@ namespace Demo
                         if (IsRegister)
                         {
                             int ret = zkfp.ZKFP_ERR_OK;
-
                             if (RegisterCount > 0 && zkfp2.DBMatch(mDBHandle, CapTmp, RegTmps[RegisterCount - 1]) <= 0)
                             {
                                 textRes.Text = "Scan your same finger please.";
                                 return;
                             }
                             Array.Copy(CapTmp, RegTmps[RegisterCount], cbCapTmp);
-
                             String strBase64 = zkfp2.BlobToBase64(CapTmp, cbCapTmp);
                             byte[] blob = zkfp2.Base64ToBlob(strBase64);
                             //Captures Fingerprint via template
@@ -237,7 +235,7 @@ namespace Demo
                                 conn = new MySqlConnection();
                                 conn.ConnectionString = myConnectionString;
                                 conn.Open();
-                                using (var myCommand = new MySqlCommand("INSERT INTO tb_fingerprints VALUES (@emp_id, @fingerprint)", conn))
+                                using (var myCommand = new MySqlCommand("INSERT INTO tb_fingerprints(emp_id, fingerprint_byte) VALUES (@emp_id, @fingerprint)", conn))
                                 {
                                     myCommand.Parameters.Add("@emp_id", MySqlDbType.String).Value = textBox_emp_id.Text;
                                     myCommand.Parameters.Add("@fingerprint", MySqlDbType.VarBinary).Value = serialized;
@@ -285,63 +283,77 @@ namespace Demo
                                 //Similarity Score (SourceAFIS)
                                 double similarity = 0.00;
                                 String candidate_id = "";
-                                String candidate_name = "";
+                                String candidate_name = "";           
+                                //Checks fingerprint exist in db
                                 try
                                 {
-                                    conn = new MySqlConnection();
-                                    conn.ConnectionString = myConnectionString;
-                                    conn.Open();
-
-                                    var myCommand2 = new MySqlCommand("SELECT tbf.emp_id, tbf.fingerprint_byte, tbe.emp_surname, tbe.emp_firstname, " +
-                                        "tbe.emp_type FROM tb_fingerprints AS tbf LEFT JOIN tb_employee AS tbe ON tbf.emp_id = tbe.emp_id", conn);
-                                    var myReader2 = myCommand2.ExecuteReader();
-
-                                    while (myReader2.Read())
-                                    {
-                                        var probe = new FingerprintTemplate(
-                                        new FingerprintImage(File.ReadAllBytes("probe.png")));
-                                        byte[] serialized2 = (byte[])myReader2["fingerprint_byte"];
-                                        var template2 = new FingerprintTemplate(serialized2);
-                                        var matcher = new FingerprintMatcher(probe);
-                                        similarity = matcher.Match(template2); //checks candidate fingerprint and store as similarity score
-                                        if (similarity >= 40.00)
-                                        {
-                                            candidate_id = myReader2.GetString("emp_id");
-                                            candidate_name = myReader2.GetString("emp_firstname") + " " + myReader2.GetString("emp_surname");
-                                            break;
-                                        }
-                                    }
-                                    conn.Close();
-                                }
-                                catch (MySqlException ex)
-                                {
-                                    MessageBox.Show(ex.Message);
-                                }
-
-
-                                if (similarity >= 40.000)
-                                {
-                                    bTimeIn = false;
-                                   
-                                    try
-                                    {
                                         conn = new MySqlConnection();
                                         conn.ConnectionString = myConnectionString;
                                         conn.Open();
-                                        using (var timeInCommand = new MySqlCommand("INSERT INTO tb_attendance_sheet(emp_id, time_in, attendance_date) VALUES (@emp_id,  @time_in, @att_date)", conn))
+                                        var myCommand2 = new MySqlCommand("SELECT tbf.emp_id, tbf.fingerprint_byte, tbe.emp_surname, tbe.emp_firstname, " +
+                                            "tbe.emp_type FROM tb_fingerprints AS tbf LEFT JOIN tb_employee AS tbe ON tbf.emp_id = tbe.emp_id", conn);
+                                        var myReader2 = myCommand2.ExecuteReader();
+                                        while (myReader2.Read())
                                         {
-                                            timeInCommand.Parameters.Add("@emp_id", MySqlDbType.String).Value = candidate_id;
-                                            timeInCommand.Parameters.Add("@time_in", MySqlDbType.String).Value = DateTime.Now.ToString("HH:mm:ss");
-                                            timeInCommand.Parameters.Add("@att_date", MySqlDbType.String).Value = DateTime.Now.ToString("yyyy-MM-dd");
-                                            timeInCommand.ExecuteNonQuery();
+                                            var probe = new FingerprintTemplate(
+                                            new FingerprintImage(File.ReadAllBytes("probe.png")));
+                                            byte[] serialized2 = (byte[])myReader2["fingerprint_byte"];
+                                            var template2 = new FingerprintTemplate(serialized2);
+                                            var matcher = new FingerprintMatcher(probe);
+                                            similarity = matcher.Match(template2); //checks candidate fingerprint and store as similarity score
+                                            if (similarity >= 40.00)
+                                            {
+                                                candidate_id = myReader2.GetString("emp_id");
+                                                candidate_name = myReader2.GetString("emp_firstname") + " " + myReader2.GetString("emp_surname");
+                                               
+                                            break;
+                                            }
                                         }
-                                        MessageBox.Show("Successful! Time-in Details: " + DateTime.Now.ToString("HH:mm:ss") + Environment.NewLine + "Employee: " + candidate_name
-                                       + " (" + candidate_id + ")");
                                         conn.Close();
                                     }
                                     catch (MySqlException ex)
                                     {
                                         MessageBox.Show(ex.Message);
+                                    }
+                        if (similarity >= 40.000)
+                                {
+                                    bTimeIn = false;
+                                    conn = new MySqlConnection();
+                                    conn.ConnectionString = myConnectionString;
+                                    conn.Open();
+                                    //Checks if user timed in already
+                                    var checkTimedCmd = new MySqlCommand("SELECT * FROM tb_attendance_sheet WHERE emp_id = @emp_id AND attendance_date = @att_date", conn);
+                                    checkTimedCmd.Parameters.Add("@emp_id", MySqlDbType.String).Value = candidate_id;
+                                    checkTimedCmd.Parameters.Add("@att_date", MySqlDbType.String).Value = DateTime.Now.ToString("yyyy-MM-dd");
+                                    var checkTimedRdr = checkTimedCmd.ExecuteReader();
+                                    if (checkTimedRdr.Read())
+                                    {
+                                        MessageBox.Show("User already Timed-in.");
+                                        conn.Close();
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        try
+                                        {
+                                            conn = new MySqlConnection();
+                                            conn.ConnectionString = myConnectionString;
+                                            conn.Open();
+                                            using (var timeInCommand = new MySqlCommand("INSERT INTO tb_attendance_sheet(emp_id, time_in, attendance_date) VALUES (@emp_id,  @time_in, @att_date)", conn))
+                                            {
+                                                timeInCommand.Parameters.Add("@emp_id", MySqlDbType.String).Value = candidate_id;
+                                                timeInCommand.Parameters.Add("@time_in", MySqlDbType.String).Value = DateTime.Now.ToString("HH:mm:ss");
+                                                timeInCommand.Parameters.Add("@att_date", MySqlDbType.String).Value = DateTime.Now.ToString("yyyy-MM-dd");
+                                                timeInCommand.ExecuteNonQuery();
+                                            }
+                                            MessageBox.Show("Successful! Time-in Details: " + Environment.NewLine + "Time: " + DateTime.Now.ToString("HH:mm:ss") + Environment.NewLine + "Employee: " + candidate_name
+                                           + " (" + candidate_id + ")");
+                                            conn.Close();
+                                        }
+                                        catch (MySqlException ex)
+                                        {
+                                            MessageBox.Show(ex.Message);
+                                        }
                                     }
                                 }
                                 else
@@ -350,7 +362,6 @@ namespace Demo
                                     MessageBox.Show("Fingerprint Not Registered.");
                                     
                                 }
-                  
                             }
                             if (bTimeOut)
                             {
@@ -366,11 +377,9 @@ namespace Demo
                                     conn = new MySqlConnection();
                                     conn.ConnectionString = myConnectionString;
                                     conn.Open();
-
                                     var myCommand2 = new MySqlCommand("SELECT tbf.emp_id, tbf.fingerprint_byte, tbe.emp_surname, tbe.emp_firstname, " +
                                         "tbe.emp_type FROM tb_fingerprints AS tbf LEFT JOIN tb_employee AS tbe ON tbf.emp_id = tbe.emp_id", conn);
                                     var myReader2 = myCommand2.ExecuteReader();
-
                                     while (myReader2.Read())
                                     {
                                         var probe = new FingerprintTemplate(
@@ -391,31 +400,46 @@ namespace Demo
                                 {
                                     MessageBox.Show(ex.Message);
                                 }
-
                                 if (similarity >= 40.000)
                                 {
                                     bTimeOut = false;
-                                    
-                                    try
+                                    conn = new MySqlConnection();
+                                    conn.ConnectionString = myConnectionString;
+                                    conn.Open();
+                                    //Checks if user already timed out
+                                    var checkOutCmd = new MySqlCommand("SELECT * FROM tb_attendance_sheet WHERE emp_id = @emp_id AND attendance_date = @att_date AND time_out NOT LIKE @time_out", conn);
+                                    checkOutCmd.Parameters.Add("@emp_id", MySqlDbType.String).Value = candidate_id;
+                                    checkOutCmd.Parameters.Add("@time_out", MySqlDbType.String).Value = "00:00:00.000000";
+                                    checkOutCmd.Parameters.Add("@att_date", MySqlDbType.Date).Value = DateTime.Now.ToString("yyyy-MM-dd");
+                                    var checkOutRdr = checkOutCmd.ExecuteReader();
+                                    if (checkOutRdr.Read())
                                     {
-                                        conn = new MySqlConnection();
-                                        conn.ConnectionString = myConnectionString;
-                                        conn.Open();
-                                        using (var timeOutCommand = new MySqlCommand("UPDATE tb_attendance_sheet SET time_out = @time_out", conn))
-                                        {
-                     
-                                            //timeOutCommand.Parameters.Add("@emp_id", MySqlDbType.String).Value = candidate_id;
-                                            timeOutCommand.Parameters.Add("@time_out", MySqlDbType.String).Value = DateTime.Now.ToString("HH:mm:ss");
-                                            //timeOutCommand.Parameters.Add("@att_date", MySqlDbType.Date).Value = now.ToString("yy-MM-dd");
-                                            timeOutCommand.ExecuteNonQuery();
-                                        }
-                                        MessageBox.Show("Successful! Time-out Details: " + DateTime.Now.ToString("HH:mm:ss") + Environment.NewLine + "Employee: " + candidate_name
-                                        + " (" + candidate_id + ")");
+                                        MessageBox.Show("User already Timed-out.");
                                         conn.Close();
+                                        break;
                                     }
-                                    catch (MySqlException ex)
+                                    else
                                     {
-                                        MessageBox.Show(ex.Message);
+                                        try
+                                        {
+                                            conn = new MySqlConnection();
+                                            conn.ConnectionString = myConnectionString;
+                                            conn.Open();
+                                            using (var timeOutCommand = new MySqlCommand("UPDATE tb_attendance_sheet SET time_out = @time_out WHERE emp_id = @emp_id AND attendance_date = @att_date", conn))
+                                            {
+                                                timeOutCommand.Parameters.Add("@emp_id", MySqlDbType.String).Value = candidate_id;
+                                                timeOutCommand.Parameters.Add("@time_out", MySqlDbType.String).Value = DateTime.Now.ToString("HH:mm:ss");
+                                                timeOutCommand.Parameters.Add("@att_date", MySqlDbType.Date).Value = DateTime.Now.ToString("yyyy-MM-dd");
+                                                timeOutCommand.ExecuteNonQuery();
+                                            }
+                                            MessageBox.Show("Successful! Time-out Details: " + DateTime.Now.ToString("HH:mm:ss") + Environment.NewLine + "Employee: " + candidate_name
+                                            + " (" + candidate_id + ")");
+                                            conn.Close();
+                                        }
+                                        catch (MySqlException ex)
+                                        {
+                                            MessageBox.Show(ex.Message);
+                                        }
                                     }
                                 }
                                 else

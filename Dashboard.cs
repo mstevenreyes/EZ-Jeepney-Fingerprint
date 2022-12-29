@@ -41,7 +41,7 @@ namespace Demo
         Thread captureThread = null;
         //Mysql Connection
         MySqlConnection conn;
-        String myConnectionString = "server=localhost;uid=root;" + "database=majetsco";
+        String myConnectionString = "server=31.220.110.151;uid=u809948736_ezjeepney_root;" + "database=u809948736_ezjeepney;password=4Qw!tKtj!VXXf$";
         //Employee ID
 
         //template fingerprinit bRegister
@@ -229,30 +229,32 @@ namespace Demo
                             template = new FingerprintTemplate(image);
                             serialized = template.ToByteArray();
                             //Checks if finger already registered
-                            double registeredCheck = 0.00;
-                            conn = new MySqlConnection();
-                            conn.ConnectionString = myConnectionString;
-                            conn.Open();
-                            var checkRegistered = new MySqlCommand("SELECT fingerprint_byte FROM tb_fingerprints", conn);
-                            var checkRegisterRead = checkRegistered.ExecuteReader();
-                            while(checkRegisterRead.Read())
+                            if (RegisterCount < 0)
                             {
-                                var probe = new FingerprintTemplate(
-                                            new FingerprintImage(File.ReadAllBytes("probe.png")));
-                                byte[] fingerByteArr = (byte[])checkRegisterRead["fingerprint_byte"];
-                                var fingerTemplate = new FingerprintTemplate(fingerByteArr);
-                                var registerMatch = new FingerprintMatcher(probe);
-                                registeredCheck = registerMatch.Match(fingerTemplate); //checks candidate fingerprint and store as similarity score
-                                if (registeredCheck >= 40.00)
+                                double registeredCheck = 0.00;
+                                conn = new MySqlConnection();
+                                conn.ConnectionString = myConnectionString;
+                                conn.Open();
+                                var checkRegistered = new MySqlCommand("SELECT fingerprint_byte FROM tb_fingerprints", conn);
+                                var checkRegisterRead = checkRegistered.ExecuteReader();
+                                while (checkRegisterRead.Read())
                                 {
-                                    MessageBox.Show("Finger already registered in the database.");
-                                    return;
+                                    var probe = new FingerprintTemplate(
+                                                new FingerprintImage(File.ReadAllBytes("probe.png")));
+                                    byte[] fingerByteArr = (byte[])checkRegisterRead["fingerprint_byte"];
+                                    var fingerTemplate = new FingerprintTemplate(fingerByteArr);
+                                    var registerMatch = new FingerprintMatcher(probe);
+                                    registeredCheck = registerMatch.Match(fingerTemplate); //checks candidate fingerprint and store as similarity score
+                                    if (registeredCheck >= 40.00)
+                                    {
+                                        MessageBox.Show("Finger already registered in the database.");
+                                        return;
+                                    }
                                 }
+                                conn.Close();
                             }
-                            conn.Close();
-                           
                             //Mysql Connection and Insert
-                            myConnectionString = "server=localhost;uid=root;" + "database=majetsco";
+                            myConnectionString = "server=31.220.110.151;uid=u809948736_ezjeepney_root;" + "database=u809948736_ezjeepney;password=4Qw!tKtj!VXXf$";
                             try
                             {
                                 conn = new MySqlConnection();
@@ -390,7 +392,7 @@ namespace Demo
                             {
                                 int ret = zkfp.ZKFP_ERR_OK;
                                 //Mysql Query
-                                myConnectionString = "server=localhost;uid=root;" + "database=majetsco";
+                                myConnectionString = "server=31.220.110.151;uid=u809948736_ezjeepney_root;" + "database=u809948736_ezjeepney;password=4Qw!tKtj!VXXf$";
                                 //Similarity Score (SourceAFIS)
                                 double similarity = 0.00;
                                 String candidate_id = "";
@@ -487,7 +489,7 @@ namespace Demo
         {
             FormHandle = this.Handle;
             //Mysql Query for custom source Employee ID
-            myConnectionString = "server=localhost;uid=root;" + "database=majetsco";
+            myConnectionString = "server=31.220.110.151;uid=u809948736_ezjeepney_root;" + "database=u809948736_ezjeepney;password=4Qw!tKtj!VXXf$";
             try
             {
                 conn = new MySqlConnection();
